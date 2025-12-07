@@ -1,8 +1,48 @@
 from pathlib import Path
 
+def count_splits2(grid: list[str]) -> int:
+    H, W = len(grid), len(grid[0])
+
+    for r, row in enumerate(grid):
+        c = row.find('S')
+        if c != -1:
+            sr, sc = r, c
+            break
+
+    dp = [[0] * W for _ in range(H)]
+    dp[sr][sc] = 1
+
+    finished = 0
+
+    for r in range(sr, H):
+        for c in range(W):
+            k = dp[r][c]
+            if k == 0:
+                continue
+
+            if r == H - 1:
+                finished += k
+                continue
+
+            below = grid[r + 1][c]
+
+            if below in ('.', 'S'):
+                dp[r + 1][c] += k
+
+            elif below == '^':
+                if c > 0:
+                    dp[r + 1][c - 1] += k
+                else:
+                    finished += k
+                if c + 1 < W:
+                    dp[r + 1][c + 1] += k
+                else:
+                    finished += k
+
+    return finished
+
 def count_splits(grid: list[str]) -> int:
     H, W = len(grid), len(grid[0])
-    # Find S
     for r, row in enumerate(grid):
         c = row.find('S')
         if c != -1:
@@ -29,7 +69,6 @@ def count_splits(grid: list[str]) -> int:
                 if c + 1 < W:
                     new.add((nr, c + 1))
             else:
-                # treat S as empty space
                 new.add((nr, c))
 
         beams = new
@@ -41,3 +80,4 @@ if __name__ == "__main__":
     # input_path = Path(__file__).parent / "test.txt"
     text = input_path.read_text().splitlines()
     print(count_splits(text))
+    print(count_splits2(text))
