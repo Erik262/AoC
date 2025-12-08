@@ -19,7 +19,7 @@ class DSU:
         rb = self.find(b)
 
         if ra == rb:
-            return
+            return False
         
         if self.rank[ra] < self.rank[rb]:
             self.parent[ra] = rb
@@ -30,6 +30,9 @@ class DSU:
         else:
             self.parent[rb] = ra
             self.rank[ra] += 1
+
+        return True
+
 
 def read_points(path):
     pts = []
@@ -57,24 +60,49 @@ def all_pairwise_edges(points):
 
     return edges
 
+def solve_part1(points, edges, connections_needed):
+    n = len(points)
+    dsu = DSU(n)
+
+    for k in range(min(connections_needed, len(edges))):
+        _, i, j = edges[k]
+        dsu.union(i, j)
+
+    roots = [dsu.find(i) for i in range(n)]
+    counts = Counter(roots)
+    sizes = sorted(counts.values(), reverse=True)
+
+    return sizes[0] * sizes[1] * sizes[2]
+
+def solve_part2(points, edges):
+    n = len(points)
+    dsu = DSU(n)
+    components = n
+    last_i = last_j = None
+
+    for _, i, j in edges:
+        if dsu.union(i, j):
+            components -= 1
+            last_i, last_j = i, j
+
+            if components == 1:
+                break
+
+    x1 = points[last_i][0]
+    x2 = points[last_j][0]
+
+    return x1 * x2
+
 if __name__ == "__main__":
     # input_path = Path(__file__).parent / "test.txt"
     input_path = Path(__file__).parent / "input.txt"
-    
+
     points = read_points(input_path)
     edges = all_pairwise_edges(points)
     edges.sort(key=lambda e: e[0])
 
-    connections_needed = 1000
+    part1 = solve_part1(points, edges, 1000)
+    part2 = solve_part2(points, edges)
 
-    dsu = DSU(len(points))
-    for k in range(connections_needed):
-        _, i, j = edges[k]
-        dsu.union(i, j)
-
-    roots = [dsu.find(i) for i in range(len(points))]
-    counts = Counter(roots)
-    sizes = sorted(counts.values(), reverse=True)
-
-    result = sizes[0] * sizes[1] * sizes[2]
-    print(result)
+    print(part1)
+    print(part2)
